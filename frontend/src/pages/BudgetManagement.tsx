@@ -92,7 +92,7 @@ export const BudgetManagement: React.FC = () => {
                 </svg>
                 <div className="absolute text-center space-y-0.5">
                   <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Spent</span>
-                  <p className="font-outfit text-base font-extrabold text-slate-805 dark:text-slate-100">
+                  <p className="font-outfit text-base font-extrabold text-slate-800 dark:text-slate-100">
                     {totalBudgetProgress.toFixed(0)}%
                   </p>
                   <span className="text-[9px] text-slate-400 dark:text-slate-500 block">
@@ -105,7 +105,7 @@ export const BudgetManagement: React.FC = () => {
             {/* Set limit form */}
             <form onSubmit={handleSaveMonthlyLimit} className="space-y-3 pt-2 text-left">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-505 uppercase">
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">
                   Monthly Budget Limit (Rs.)
                 </label>
                 <div className="flex gap-2">
@@ -113,7 +113,7 @@ export const BudgetManagement: React.FC = () => {
                     type="number"
                     value={monthlyLimitInput}
                     onChange={(e) => setMonthlyLimitInput(Number(e.target.value))}
-                    className="flex-1 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-205 dark:border-slate-805 text-xs text-slate-700 dark:text-slate-200 px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                    className="flex-1 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-200 px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:outline-none"
                   />
                   <button
                     type="submit"
@@ -160,7 +160,7 @@ export const BudgetManagement: React.FC = () => {
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
                       <span className="inline-block h-2 w-2 rounded-full bg-brand-500" />
-                      <span className="text-xs font-bold text-slate-705 dark:text-slate-200">{cat}</span>
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{cat}</span>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -170,7 +170,7 @@ export const BudgetManagement: React.FC = () => {
                             type="number"
                             value={categoryLimitInput}
                             onChange={(e) => setCategoryLimitInput(Number(e.target.value))}
-                            className="w-20 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-205 dark:border-slate-805 text-[10px] px-2 py-1 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold"
+                            className="w-20 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[10px] px-2 py-1 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold"
                           />
                           <button
                             onClick={() => handleSaveCategoryLimit(cat)}
@@ -181,7 +181,7 @@ export const BudgetManagement: React.FC = () => {
                         </div>
                       ) : (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] text-slate-500 dark:text-slate-405 font-medium">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                             Rs. {spend.toLocaleString()} / <strong className="text-slate-700 dark:text-slate-300">{limit > 0 ? `Rs. ${limit.toLocaleString()}` : 'No Limit'}</strong>
                           </span>
                           <button

@@ -376,7 +376,7 @@ export const AddExpense: React.FC = () => {
             {/* Inputs Row for adding a new item */}
             <div className="grid gap-3 grid-cols-1 sm:grid-cols-12 bg-slate-50/50 dark:bg-slate-950/40 p-4 rounded-xl border border-slate-150/60 dark:border-slate-850/80">
               <div className="sm:col-span-4 space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-505 uppercase">Item Name</label>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Item Name</label>
                 <input
                   type="text"
                   placeholder="e.g. Milk packet, Coffee"
@@ -388,7 +388,7 @@ export const AddExpense: React.FC = () => {
               </div>
 
               <div className="sm:col-span-2 space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-505 uppercase">Quantity</label>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Quantity</label>
                 <input
                   type="number"
                   placeholder="1"
@@ -401,7 +401,7 @@ export const AddExpense: React.FC = () => {
               </div>
 
               <div className="sm:col-span-2 space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase">Price (Rs.)</label>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Price (Rs.)</label>
                 <input
                   type="number"
                   placeholder="0"
@@ -414,7 +414,7 @@ export const AddExpense: React.FC = () => {
               </div>
 
               <div className="sm:col-span-2 space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase">Category</label>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Category</label>
                 <select
                   value={newItemCategory}
                   onChange={(e) => setNewItemCategory(e.target.value)}

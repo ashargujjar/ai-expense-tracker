@@ -398,7 +398,7 @@ export const Dashboard: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between text-[11px] text-slate-550 dark:text-slate-405">
+                  <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                     <span>Average Item Cost:</span>
                     <span className="font-bold text-slate-800 dark:text-slate-100">
                       {avgItemPrice > 0 ? `Rs. ${avgItemPrice}` : 'N/A'}

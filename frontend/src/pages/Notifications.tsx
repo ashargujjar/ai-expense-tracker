@@ -72,7 +72,7 @@ export const Notifications: React.FC = () => {
       {/* Main notifications List */}
       {notifications.length === 0 ? (
         /* Empty Inbox View */
-        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-855 p-16 text-center flex flex-col items-center justify-center shadow-sm">
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-16 text-center flex flex-col items-center justify-center shadow-sm">
           <div className="h-14 w-14 rounded-2xl bg-brand-500/10 text-brand-500 border border-brand-500/15 flex items-center justify-center mb-4">
             <Inbox className="h-7 w-7" />
           </div>
@@ -114,7 +114,7 @@ export const Notifications: React.FC = () => {
                   </div>
                 )}
                 {notif.type === 'info' && (
-                  <div className="h-8.5 w-8.5 rounded-xl bg-brand-50 dark:bg-brand-950/30 text-brand-500 flex items-center justify-center border border-brand-105 dark:border-brand-905/30">
+                  <div className="h-8.5 w-8.5 rounded-xl bg-brand-50 dark:bg-brand-950/30 text-brand-500 flex items-center justify-center border border-brand-100 dark:border-brand-900/30">
                     <Sparkles className="h-4.5 w-4.5" />
                   </div>
                 )}

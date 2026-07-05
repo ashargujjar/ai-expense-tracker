@@ -130,7 +130,7 @@ export const ChatAssistant: React.FC = () => {
       // Unordered lists formatting
       if (line.startsWith('* ') || line.startsWith('- ')) {
         return (
-          <li key={i} className="list-disc list-inside ml-2 my-1 text-slate-650 dark:text-slate-350">
+          <li key={i} className="list-disc list-inside ml-2 my-1 text-slate-600 dark:text-slate-350">
             {line.substring(2)}
           </li>
         );
@@ -140,14 +140,14 @@ export const ChatAssistant: React.FC = () => {
       if (/^\d+\.\s/.test(line)) {
         const dotIndex = line.indexOf('.');
         return (
-          <li key={i} className="list-decimal list-inside ml-2 my-1 text-slate-650 dark:text-slate-350">
+          <li key={i} className="list-decimal list-inside ml-2 my-1 text-slate-600 dark:text-slate-350">
             {line.substring(dotIndex + 2)}
           </li>
         );
       }
 
       return (
-        <p key={i} className="my-1.5 min-h-[1em] text-slate-650 dark:text-slate-300">
+        <p key={i} className="my-1.5 min-h-[1em] text-slate-600 dark:text-slate-300">
           {content}
         </p>
       );
@@ -162,7 +162,7 @@ export const ChatAssistant: React.FC = () => {
 
     return (
       <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/60 max-w-md">
-        <h5 className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-505 mb-3 flex items-center gap-1">
+        <h5 className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-1">
           <span>AI Insight Visualization</span>
         </h5>
         
@@ -266,7 +266,7 @@ export const ChatAssistant: React.FC = () => {
             </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-105 dark:border-slate-805">
+          <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
             <button
               onClick={clearChats}
               className="flex w-full items-center justify-center gap-2 rounded-xl py-2 text-xs font-bold text-slate-400 hover:text-rose-550 dark:hover:text-rose-400 transition-colors"
@@ -282,7 +282,7 @@ export const ChatAssistant: React.FC = () => {
       {!showSidebar && (
         <button
           onClick={() => setShowSidebar(true)}
-          className="absolute top-4 left-4 z-10 p-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-205 dark:border-slate-805 text-slate-500 hover:bg-slate-105"
+          className="absolute top-4 left-4 z-10 p-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-100"
         >
           <MessageSquare className="h-4 w-4" />
         </button>
@@ -355,7 +355,7 @@ export const ChatAssistant: React.FC = () => {
                 </div>
 
                 {message.role === 'user' && (
-                  <div className="h-8.5 w-8.5 shrink-0 flex items-center justify-center rounded-xl bg-slate-105 font-bold text-slate-650 text-xs border dark:bg-slate-805 dark:text-slate-300">
+                  <div className="h-8.5 w-8.5 shrink-0 flex items-center justify-center rounded-xl bg-slate-100 font-bold text-slate-600 text-xs border dark:bg-slate-800 dark:text-slate-300">
                     U
                   </div>
                 )}

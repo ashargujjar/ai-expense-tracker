@@ -117,8 +117,8 @@ export const Profile: React.FC = () => {
         {/* LEFT COLUMN: Profile Info & Appearance */}
         <div className="md:col-span-7 space-y-6">
           {/* Card 1: User Info */}
-          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-855 p-6 shadow-sm space-y-4">
-            <h3 className="font-outfit text-sm font-bold text-slate-805 dark:text-slate-200 flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-850">
+          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+            <h3 className="font-outfit text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-850">
               <User className="h-4.5 w-4.5 text-brand-500" />
               <span>User Information</span>
             </h3>
@@ -143,9 +143,9 @@ export const Profile: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-505">Currency Symbol</label>
+                  <label className="text-xs font-semibold text-slate-500">Currency Symbol</label>
                   <select
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-805 text-xs text-slate-700 dark:text-slate-205 px-3.5 py-2.5 focus:ring-2 focus:ring-brand-505 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-200 px-3.5 py-2.5 focus:ring-2 focus:ring-brand-500 focus:outline-none"
                     {...regProfile('currency')}
                   >
                     <option value="Rs.">Rs. (INR)</option>
@@ -155,12 +155,12 @@ export const Profile: React.FC = () => {
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-505">Member Since</label>
+                  <label className="text-xs font-semibold text-slate-500">Member Since</label>
                   <input
                     type="text"
                     disabled
                     value={user?.joinedDate || '2026-06-01'}
-                    className="w-full rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-205 dark:border-slate-805 text-xs text-slate-400 px-3.5 py-2.5 cursor-not-allowed"
+                    className="w-full rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-xs text-slate-400 px-3.5 py-2.5 cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -177,8 +177,8 @@ export const Profile: React.FC = () => {
           </div>
 
           {/* Card 2: Appearance & Theme settings */}
-          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-855 p-6 shadow-sm space-y-4">
-            <h3 className="font-outfit text-sm font-bold text-slate-805 dark:text-slate-200 flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-850">
+          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+            <h3 className="font-outfit text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-850">
               <Palette className="h-4.5 w-4.5 text-brand-500" />
               <span>Appearance & Theme</span>
             </h3>
@@ -199,7 +199,7 @@ export const Profile: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <Moon className="h-4 w-4 text-slate-550" />
+                    <Moon className="h-4 w-4 text-slate-500" />
                     <span>Dark Mode</span>
                   </>
                 )}
@@ -211,37 +211,37 @@ export const Profile: React.FC = () => {
         {/* RIGHT COLUMN: Change password & Data Actions */}
         <div className="md:col-span-5 space-y-6">
           {/* Card 3: Change Password */}
-          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-855 p-6 shadow-sm space-y-4">
-            <h3 className="font-outfit text-sm font-bold text-slate-805 dark:text-slate-200 flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-850">
+          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+            <h3 className="font-outfit text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-850">
               <KeyRound className="h-4.5 w-4.5 text-brand-500" />
               <span>Security Settings</span>
             </h3>
 
             <form onSubmit={handlePasswordSubmit(onPasswordChange)} className="space-y-3.5">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-505 uppercase">Current Password</label>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Current Password</label>
                 <input
                   type="password"
                   placeholder="••••••••"
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-805 text-xs text-slate-700 dark:text-slate-200 px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-200 px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   {...regPassword('oldPassword', { required: true })}
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-505 uppercase">New Password</label>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">New Password</label>
                 <input
                   type="password"
                   placeholder="••••••••"
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-805 text-xs text-slate-700 dark:text-slate-200 px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-200 px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   {...regPassword('newPassword', { required: true, minLength: 6 })}
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-505 uppercase">Confirm New Password</label>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Confirm New Password</label>
                 <input
                   type="password"
                   placeholder="••••••••"
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-805 text-xs text-slate-700 dark:text-slate-200 px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-200 px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   {...regPassword('confirmPassword', { required: true })}
                 />
               </div>
@@ -267,8 +267,8 @@ export const Profile: React.FC = () => {
           </div>
 
           {/* Card 4: Backup Export & Termination */}
-          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-855 p-6 shadow-sm space-y-4">
-            <h3 className="font-outfit text-sm font-bold text-slate-805 dark:text-slate-200 flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-850">
+          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+            <h3 className="font-outfit text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-850">
               <Download className="h-4.5 w-4.5 text-brand-500" />
               <span>Data Export & Management</span>
             </h3>

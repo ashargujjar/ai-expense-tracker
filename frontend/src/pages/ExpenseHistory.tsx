@@ -85,7 +85,7 @@ export const ExpenseHistory: React.FC = () => {
               p-2 rounded-xl border transition-all duration-205
               ${viewMode === 'table' 
                 ? 'bg-brand-50 border-brand-200 text-brand-600 dark:bg-brand-900/30 dark:border-slate-800 dark:text-brand-400' 
-                : 'border-slate-205 bg-white text-slate-500 hover:text-slate-800 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-405'}
+                : 'border-slate-200 bg-white text-slate-500 hover:text-slate-800 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400'}
             `}
             aria-label="Table View"
           >
@@ -97,7 +97,7 @@ export const ExpenseHistory: React.FC = () => {
               p-2 rounded-xl border transition-all duration-205
               ${viewMode === 'grid' 
                 ? 'bg-brand-50 border-brand-200 text-brand-600 dark:bg-brand-900/30 dark:border-slate-800 dark:text-brand-400' 
-                : 'border-slate-205 bg-white text-slate-500 hover:text-slate-800 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-405'}
+                : 'border-slate-200 bg-white text-slate-500 hover:text-slate-800 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400'}
             `}
             aria-label="Grid View"
           >
@@ -237,7 +237,7 @@ export const ExpenseHistory: React.FC = () => {
                     <td className="py-3.5 px-3 text-slate-500 dark:text-slate-400 font-medium">
                       {expense.date}
                     </td>
-                    <td className="py-3.5 px-3 text-slate-550 dark:text-slate-450">
+                    <td className="py-3.5 px-3 text-slate-500 dark:text-slate-450">
                       {expense.paymentMethod}
                     </td>
                     <td className="py-3.5 px-3 text-right font-bold text-slate-800 dark:text-slate-100">

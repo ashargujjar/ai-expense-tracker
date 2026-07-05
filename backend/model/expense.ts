@@ -12,9 +12,9 @@ class EXPENSE {
     totalAmount: number;
     userId: string;
     totalItems: number;
-    receiptId?: string;
+    receiptId?: string | undefined;
 
-    constructor(items: ExpenseItem[], totalAmount: number, userId: string, totalItems: number, receiptId?: string) {
+    constructor(items: ExpenseItem[], totalAmount: number, userId: string, totalItems: number, receiptId: string | undefined = undefined) {
         this.items = items;
         this.totalAmount = totalAmount;
         this.userId = userId;

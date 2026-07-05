@@ -61,7 +61,7 @@ const chatSchema = new mongoose.Schema<ChatType>({
 
 const expensesSchema = new mongoose.Schema<ExpensesType>({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    receiptId: { type: mongoose.Schema.Types.ObjectId, ref: 'Receipt', required: false, default: "" },
+    receiptId: { type: mongoose.Schema.Types.ObjectId, ref: 'Receipt', required: false, default: undefined },
     items: [{
         name: { type: String, required: true },
         price: { type: Number, required: true },

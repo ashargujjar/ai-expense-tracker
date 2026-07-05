@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80" # Note: If you are running Vite in dev mode, change 80 to 5173 on the container side if needed
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true # Forces file watching to work over Windows volumes
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app # <-- CRITICAL: You need to mount the backend volume too to see live changes!
+      - /app/node_modules # <-- Prevents overriding container node_modules
+    env_file:
+      - ./.env
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:latest
+    env_file:
+      - ./.env
+    ports:
+      - "27017:27017"

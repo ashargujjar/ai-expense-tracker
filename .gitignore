@@ -1,0 +1,107 @@
+# ==============================================================================
+# 💻 FRONTEND & NODE.JS BACKEND (Express, NestJS, Vite, Next.js, React)
+# ==============================================================================
+
+# Dependency directories
+**/node_modules/
+**/jspm_packages/
+**/.npm/
+**/.yarn/
+
+# Frontend build outputs and compilation artifacts
+**/dist/
+**/build/
+**/.next/
+**/out/
+**/.nuxt/
+
+# Debug and execution logs
+**/*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+
+# Testing & coverage output
+**/coverage/
+**/.nyc_output/
+
+
+# ==============================================================================
+# 🐍 PYTHON (Django, FastAPI, Flask, Data Science)
+# ==============================================================================
+
+# Byte-compiled / optimized / DLL files (Python execution cache)
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+
+# Virtual Environments (CRITICAL to avoid uploading gigabytes of dependencies)
+**/.venv/
+**/venv/
+**/ENV/
+**/env/
+**/ENV_DIR/
+
+# Distribution / packaging outputs
+**/develop-eggs/
+**/.eggs/
+**/downloads/
+**/eggs/
+**/.eggs/
+**/parts/
+**/sdist/
+**/var/
+**/wheels/
+**/share/python-wheels/
+**/*.egg-info/
+**/.installed.cfg
+**/*.egg
+**/MANIFEST
+
+# Jupyter Notebook checkpoints
+**/.ipynb_checkpoints/
+
+# Poetry, Pipenv, and pytest artifacts
+**/.pytest_cache/
+**/.tox/
+**/.mypy_cache/
+**/.ruff_cache/
+
+
+# ==============================================================================
+# 🛡️ SECURITY & ENVIRONMENT VARIABLES (Apply to all environments)
+# ==============================================================================
+# Never commit your secrets, API keys, or database credentials!
+**/.env
+**/.env.local
+**/.env.development
+**/.env.test
+**/.env.production
+**/.env.*.local
+**/*.pem
+**/*.key
+**/secret_key.txt
+
+
+# ==============================================================================
+# ⚙️ OPERATING SYSTEM & IDE CONFIGURATIONS
+# ==============================================================================
+
+# macOS files
+**/.DS_Store
+**/.AppleDouble
+**/.LSOverride
+
+# Windows thumbnail caches
+**/Thumbs.db
+**/ehthumbs.db
+
+# IDE / Code Editors
+**/.vscode/
+**/.idea/
+**/*.suo
+**/*.ntvs*
+**/*.njsproj
+**/*.sln
+**/*.sw?

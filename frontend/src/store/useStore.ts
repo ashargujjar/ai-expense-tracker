@@ -1,14 +1,14 @@
 import { create } from 'zustand';
-import type { 
-  Expense, 
-  Budget, 
-  Chat, 
-  Message, 
-  Notification 
+import type {
+  Expense,
+  Budget,
+  Chat,
+  Message,
+  Notification
 } from '../utils/mockData';
-import { 
-  INITIAL_BUDGET, 
-  INITIAL_NOTIFICATIONS, 
+import {
+  INITIAL_BUDGET,
+  INITIAL_NOTIFICATIONS,
   INITIAL_CHATS,
   queryAIInsights
 } from '../utils/mockData';
@@ -26,6 +26,7 @@ interface User {
 interface ScanReceipt {
   image: string;
   name: string;
+  file?: File;
   progress: number;
   status: 'idle' | 'uploaded' | 'processing' | 'completed' | 'failed';
   error?: string;
@@ -63,7 +64,7 @@ interface AppState {
 
   // Scanning Receipt
   currentScan: ScanReceipt | null;
-  setScanReceipt: (image: string, fileName: string) => void;
+  setScanReceipt: (image: string, fileName: string, file?: File) => void;
   startScanning: () => void;
   cancelScanning: () => void;
   completeScanning: (items: { name: string; price: number; category: string }[]) => void;
@@ -151,11 +152,11 @@ export const useStore = create<AppState>((set, get) => ({
         throw new Error(data.message || 'Login failed');
       }
 
-      const user = { 
-        name: data.user?.name || 'User', 
-        email: data.user?.email || email, 
-        currency: 'Rs.', 
-        joinedDate: new Date().toISOString().split('T')[0] 
+      const user = {
+        name: data.user?.name || 'User',
+        email: data.user?.email || email,
+        currency: 'Rs.',
+        joinedDate: new Date().toISOString().split('T')[0]
       };
 
       // Store token starting with Bearer in localStorage
@@ -246,7 +247,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   // Expenses State
   expenses: getLocal<Expense[]>('expenses', []),
-  
+
   fetchExpenses: async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -267,7 +268,7 @@ export const useStore = create<AppState>((set, get) => ({
           let title = 'Expense';
           if (be.items && be.items.length > 0) {
             const firstItemName = be.items[0].name;
-            title = be.items.length > 1 
+            title = be.items.length > 1
               ? `${firstItemName} & ${be.items.length - 1} other item${be.items.length > 2 ? 's' : ''}`
               : firstItemName;
           }
@@ -438,87 +439,146 @@ export const useStore = create<AppState>((set, get) => ({
 
   // Scanning Receipt State
   currentScan: null,
-  setScanReceipt: (image, fileName) => {
+  setScanReceipt: (image, fileName, file) => {
     set({
       currentScan: {
         image,
         name: fileName,
+        file,
         progress: 0,
         status: 'uploaded',
       }
     });
   },
 
-  startScanning: () => {
+  startScanning: async () => {
     const scan = get().currentScan;
     if (!scan) return;
     set({ currentScan: { ...scan, status: 'processing', progress: 10 } });
 
-    // Simulate scanning ticks
-    const interval = setInterval(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      set({
+        currentScan: {
+          ...scan,
+          status: 'failed',
+          error: 'Authentication token not found. Please log in.'
+        }
+      });
+      return;
+    }
+
+    // Set up a simulated loading progress bar while the file is uploading/processing
+    const progressInterval = setInterval(() => {
       const current = get().currentScan;
       if (!current || current.status !== 'processing') {
-        clearInterval(interval);
+        clearInterval(progressInterval);
         return;
       }
-
-      if (current.progress >= 90) {
-        clearInterval(interval);
-        
-        // Mock OCR result generator
-        const isSuccess = Math.random() < 0.92; // 92% Success
-        if (isSuccess) {
-          const names = ['A2 Organic Milk', 'Fresh Boneless Chicken', 'Basmati Rice Premium', 'Cage Free Eggs', 'Sourdough Bread'];
-          const cats = ['Dairy', 'Food & Dining', 'Grocery', 'Dairy', 'Dairy'];
-          
-          const itemsCount = Math.floor(Math.random() * 3) + 2; // 2 to 4 items
-          const items = Array.from({ length: itemsCount }).map(() => {
-            const idx = Math.floor(Math.random() * names.length);
-            const price = Math.floor(Math.random() * 400) + 150;
-            return {
-              name: names[idx],
-              price,
-              category: cats[idx]
-            };
-          });
-
-          set({
-            currentScan: {
-              ...current,
-              status: 'completed',
-              progress: 100,
-              ocrItems: items
-            }
-          });
-
-          get().addNotification(
-            'Receipt Scanned Successfully',
-            `Extracted ${items.length} items from ${current.name}. Ready for review.`,
-            'success'
-          );
-        } else {
-          set({
-            currentScan: {
-              ...current,
-              status: 'failed',
-              error: 'Failed to align text. Image quality too low or text unreadable.'
-            }
-          });
-          get().addNotification(
-            'OCR Processing Failed',
-            `Could not extract data from ${current.name}. Try manual upload.`,
-            'warning'
-          );
-        }
-      } else {
+      if (current.progress < 90) {
         set({
           currentScan: {
             ...current,
-            progress: current.progress + Math.floor(Math.random() * 20) + 10
+            progress: current.progress + Math.floor(Math.random() * 15) + 5
           }
         });
       }
-    }, 800);
+    }, 500);
+
+    try {
+      let responseData: any;
+      if (scan.file) {
+        const formData = new FormData();
+        formData.append('image', scan.file);
+
+        const response = await fetch(`${BACKEND_URL}/api/upload-receipt`, {
+          method: 'POST',
+          headers: {
+            'Authorization': token
+          },
+          body: formData
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({ message: 'Failed to upload receipt' }));
+          throw new Error(errData.message || 'Failed to upload receipt');
+        }
+
+        responseData = await response.json();
+      } else {
+        // Fallback mock flow if file object isn't present
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        const names = ['A2 Organic Milk', 'Fresh Boneless Chicken', 'Basmati Rice Premium', 'Cage Free Eggs', 'Sourdough Bread'];
+        const cats = ['Dairy', 'Food & Dining', 'Grocery', 'Dairy', 'Dairy'];
+        const itemsCount = Math.floor(Math.random() * 3) + 2;
+        const items = Array.from({ length: itemsCount }).map(() => {
+          const idx = Math.floor(Math.random() * names.length);
+          const price = Math.floor(Math.random() * 400) + 150;
+          return { name: names[idx], price, category: cats[idx] };
+        });
+        responseData = {
+          receipt: { imageUrl: scan.image },
+          ocrItems: items
+        };
+      }
+
+      clearInterval(progressInterval);
+
+      // Construct backend full url if the image URL is relative, handling Windows backslashes
+      let backendImageUrl = scan.image;
+      if (responseData.receipt?.imageUrl) {
+        const imageUrl = responseData.receipt.imageUrl;
+        const normalizedImageUrl = imageUrl.replace(/\\/g, '/');
+        backendImageUrl = normalizedImageUrl.startsWith('http')
+          ? normalizedImageUrl
+          : normalizedImageUrl.startsWith('/')
+            ? `${BACKEND_URL}${normalizedImageUrl}`
+            : `${BACKEND_URL}/${normalizedImageUrl}`;
+      }
+
+      // Generate mock ocrItems on frontend since backend only uploads the image
+      let ocrItems = responseData.ocrItems;
+      if (!ocrItems) {
+        const names = ['A2 Organic Milk', 'Fresh Boneless Chicken', 'Basmati Rice Premium', 'Cage Free Eggs', 'Sourdough Bread'];
+        const cats = ['Dairy', 'Food & Dining', 'Grocery', 'Dairy', 'Dairy'];
+        const itemsCount = Math.floor(Math.random() * 3) + 2;
+        ocrItems = Array.from({ length: itemsCount }).map(() => {
+          const idx = Math.floor(Math.random() * names.length);
+          const price = Math.floor(Math.random() * 400) + 150;
+          return { name: names[idx], price, category: cats[idx] };
+        });
+      }
+
+      set({
+        currentScan: {
+          ...scan,
+          image: backendImageUrl, // Set the uploaded image URL from backend
+          status: 'completed',
+          progress: 100,
+          ocrItems: ocrItems
+        }
+      });
+
+      get().addNotification(
+        'Receipt Scanned Successfully',
+        `Extracted ${ocrItems.length} items. Ready for review.`,
+        'success'
+      );
+    } catch (err: any) {
+      clearInterval(progressInterval);
+      set({
+        currentScan: {
+          ...scan,
+          status: 'failed',
+          error: err.message || 'Failed to scan receipt'
+        }
+      });
+      get().addNotification(
+        'OCR Processing Failed',
+        err.message || 'Could not extract data from receipt.',
+        'warning'
+      );
+    }
   },
 
   cancelScanning: () => {
@@ -595,9 +655,9 @@ export const useStore = create<AppState>((set, get) => ({
       ];
       set({ chats: updatedChats, activeChatId: defaultId });
     } else {
-      set({ 
-        chats: updatedChats, 
-        activeChatId: get().activeChatId === id ? updatedChats[0].id : get().activeChatId 
+      set({
+        chats: updatedChats,
+        activeChatId: get().activeChatId === id ? updatedChats[0].id : get().activeChatId
       });
     }
     setLocal('chats', updatedChats);
@@ -630,7 +690,7 @@ export const useStore = create<AppState>((set, get) => ({
     // Simulated streaming response setup
     const assistantMsgId = `msg-${Date.now()}-assistant`;
     const finalAnswer = queryAIInsights(content, get().expenses, get().budget);
-    
+
     const initialAssistantMsg: Message = {
       id: assistantMsgId,
       role: 'assistant',
@@ -642,9 +702,9 @@ export const useStore = create<AppState>((set, get) => ({
 
     // Append empty assistant message
     set({
-      chats: get().chats.map(c => 
-        c.id === activeChatId 
-          ? { ...c, messages: [...updatedMessages, initialAssistantMsg] } 
+      chats: get().chats.map(c =>
+        c.id === activeChatId
+          ? { ...c, messages: [...updatedMessages, initialAssistantMsg] }
           : c
       )
     });
@@ -653,7 +713,7 @@ export const useStore = create<AppState>((set, get) => ({
     const textToStream = finalAnswer.content;
     let currentIdx = 0;
     const chunkSize = Math.max(1, Math.floor(textToStream.length / 15)); // Stream in 15 chunks
-    
+
     return new Promise<void>((resolve) => {
       const interval = setInterval(() => {
         if (currentIdx >= textToStream.length) {
@@ -666,14 +726,14 @@ export const useStore = create<AppState>((set, get) => ({
         const slicedText = textToStream.slice(0, currentIdx);
 
         set({
-          chats: get().chats.map(c => 
-            c.id === activeChatId 
+          chats: get().chats.map(c =>
+            c.id === activeChatId
               ? {
-                  ...c,
-                  messages: c.messages.map(m => 
-                    m.id === assistantMsgId ? { ...m, content: slicedText } : m
-                  )
-                }
+                ...c,
+                messages: c.messages.map(m =>
+                  m.id === assistantMsgId ? { ...m, content: slicedText } : m
+                )
+              }
               : c
           )
         });

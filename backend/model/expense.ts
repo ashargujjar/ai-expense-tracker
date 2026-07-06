@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Expenses } from "../schema/schema";
+import { Expenses, Receipt } from "../schema/schema";
 interface ExpenseItem {
     name: string;
     price: number;
@@ -92,6 +92,13 @@ class EXPENSE {
             }
         ]);
         return averageSpendingByCategory;
+    }
+    static async uploadReceipt(userId: string, imageUrl: string) {
+        const reciept = await Receipt.create({
+            userId: userId,
+            imageUrl: imageUrl
+        })
+        return reciept;
     }
 }
 export default EXPENSE

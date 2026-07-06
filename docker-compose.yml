@@ -3,25 +3,29 @@ version: '3.8'
 services:
   frontend:
     build: ./frontend
+    command: npm run dev -- --host --port 5173
     ports:
-      - "5173:80" # Note: If you are running Vite in dev mode, change 80 to 5173 on the container side if needed
+      - "5173:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - CHOKIDAR_USEPOLLING=true # Forces file watching to work over Windows volumes
+      - CHOKIDAR_USEPOLLING=true
     depends_on:
       - backend
 
   backend:
     build: ./backend
+    command: npx nodemon server.js
     ports:
       - "5000:5000"
     volumes:
-      - ./backend:/app # <-- CRITICAL: You need to mount the backend volume too to see live changes!
-      - /app/node_modules # <-- Prevents overriding container node_modules
+      - ./backend:/app
+      - /app/node_modules
     env_file:
       - ./.env
+    environment:
+      - CHOKIDAR_USEPOLLING=true
     depends_on:
       - mongodb
 
@@ -31,3 +35,8 @@ services:
       - ./.env
     ports:
       - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Trash2, 
-  Plus, 
-  Check, 
+import {
+  Trash2,
+  Plus,
+  Check,
   AlertCircle,
   Building,
   Calendar,
@@ -49,9 +49,9 @@ export const ReceiptProcessing: React.FC = () => {
   const handleItemFieldChange = (idx: number, field: string, value: any) => {
     const updated = items.map((item, i) => {
       if (i === idx) {
-        return { 
-          ...item, 
-          [field]: field === 'price' ? Number(value) || 0 : value 
+        return {
+          ...item,
+          [field]: field === 'price' ? Number(value) || 0 : value
         };
       }
       return item;
@@ -144,9 +144,9 @@ export const ReceiptProcessing: React.FC = () => {
           </h3>
           <div className="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-900 rounded-xl overflow-hidden flex items-center justify-center p-4 min-h-[300px] max-h-[500px]">
             {currentScan.image ? (
-              <img 
-                src={currentScan.image} 
-                alt="Uploaded Receipt" 
+              <img
+                src={currentScan.image}
+                alt="Uploaded Receipt"
                 className="max-h-full max-w-full object-contain rounded-lg shadow-sm"
               />
             ) : (

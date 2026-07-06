@@ -136,16 +136,16 @@ export const INITIAL_CHATS: Chat[] = [
 // Quick automated AI responses engine
 export const queryAIInsights = (query: string, expenses: Expense[], budget: Budget) => {
   const normalizedQuery = query.toLowerCase();
-  
+
   // Calculate stats based on current expenses
   const totalSpend = expenses.reduce((sum, e) => sum + e.amount, 0);
-  
+
   // Category-wise totals
   const categoryTotals: Record<string, number> = {};
   expenses.forEach(e => {
     categoryTotals[e.category] = (categoryTotals[e.category] || 0) + e.amount;
   });
-  
+
   // Find highest category
   let highestCategory = 'N/A';
   let highestAmount = 0;
@@ -166,7 +166,7 @@ export const queryAIInsights = (query: string, expenses: Expense[], budget: Budg
       chartType: 'pie' as const
     };
   }
-  
+
   if (normalizedQuery.includes('spend') || normalizedQuery.includes('total') || normalizedQuery.includes('how much')) {
     const monthlyLimit = budget.monthlyLimit;
     const pct = ((totalSpend / monthlyLimit) * 100).toFixed(0);
@@ -181,7 +181,7 @@ export const queryAIInsights = (query: string, expenses: Expense[], budget: Budg
     const remaining = budget.monthlyLimit - totalSpend;
     const canAfford = remaining > 45000;
     return {
-      content: canAfford 
+      content: canAfford
         ? `Yes! You currently have **Rs. ${remaining.toLocaleString()}** remaining in your budget for this month. If the laptop costs around Rs. 40,000 - 45,000, you can afford it without breaching your budget. However, it will leave you with very little buffer for utilities.`
         : `I would recommend waiting. You have **Rs. ${remaining.toLocaleString()}** remaining in your budget, and a standard laptop purchase would breach your set limit. Try setting aside Rs. 10,000 per month in a custom category for the next few months instead.`,
     };

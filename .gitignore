@@ -7,7 +7,7 @@
 **/jspm_packages/
 **/.npm/
 **/.yarn/
-
+**/uploads
 # Frontend build outputs and compilation artifacts
 **/dist/
 **/build/

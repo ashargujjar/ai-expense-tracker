@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 // No react-hook-form used
-import { 
-  Upload, 
-  Plus, 
-  Trash2, 
-  AlertCircle, 
+import {
+  Upload,
+  Plus,
+  Trash2,
+  AlertCircle,
   ClipboardList,
   Loader2,
-  Calendar
+  Calendar,
+  Check
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { CATEGORIES } from '../utils/mockData';
 
 export const AddExpense: React.FC = () => {
   const navigate = useNavigate();
-  const { 
-    addExpense, 
-    currentScan, 
-    setScanReceipt, 
-    startScanning, 
-    cancelScanning 
+  const {
+    addExpense,
+    currentScan,
+    setScanReceipt,
+    startScanning,
+    cancelScanning
   } = useStore();
 
   const [activeTab, setActiveTab] = useState<'upload' | 'manual'>('upload');
@@ -71,7 +72,7 @@ export const AddExpense: React.FC = () => {
     reader.onloadend = () => {
       const base64String = reader.result as string;
       setFilePreview(base64String);
-      setScanReceipt(base64String, file.name);
+      setScanReceipt(base64String, file.name, file);
     };
     reader.readAsDataURL(file);
   };
@@ -83,13 +84,7 @@ export const AddExpense: React.FC = () => {
     }
   }, [currentScan, startScanning]);
 
-  // Handle Scan redirection
-  useEffect(() => {
-    if (currentScan && currentScan.status === 'completed') {
-      // Redirect to review page
-      navigate('/receipt-processing');
-    }
-  }, [currentScan, navigate]);
+
 
   const handleAddItem = () => {
     if (!newItemName.trim()) {
@@ -158,7 +153,7 @@ export const AddExpense: React.FC = () => {
 
     // Auto-generate title
     const primaryTitle = itemsList[0].name;
-    const expenseTitle = itemsList.length > 1 
+    const expenseTitle = itemsList.length > 1
       ? `${primaryTitle} & ${itemsList.length - 1} other item${itemsList.length > 2 ? 's' : ''}`
       : primaryTitle;
 
@@ -193,8 +188,8 @@ export const AddExpense: React.FC = () => {
           onClick={() => setActiveTab('upload')}
           className={`
             flex items-center gap-2 px-6 py-3 border-b-2 font-outfit text-sm font-bold transition-all duration-200
-            ${activeTab === 'upload' 
-              ? 'border-brand-500 text-brand-600 dark:text-brand-400' 
+            ${activeTab === 'upload'
+              ? 'border-brand-500 text-brand-600 dark:text-brand-400'
               : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-350'}
           `}
         >
@@ -205,8 +200,8 @@ export const AddExpense: React.FC = () => {
           onClick={() => setActiveTab('manual')}
           className={`
             flex items-center gap-2 px-6 py-3 border-b-2 font-outfit text-sm font-bold transition-all duration-200
-            ${activeTab === 'manual' 
-              ? 'border-brand-500 text-brand-600 dark:text-brand-400' 
+            ${activeTab === 'manual'
+              ? 'border-brand-500 text-brand-600 dark:text-brand-400'
               : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-350'}
           `}
         >
@@ -236,8 +231,8 @@ export const AddExpense: React.FC = () => {
               onDrop={handleDrop}
               className={`
                 border-2 border-dashed rounded-2xl p-12 text-center flex flex-col items-center justify-center cursor-pointer transition-all duration-200
-                ${isDragActive 
-                  ? 'border-brand-500 bg-brand-50/20 dark:bg-brand-950/20' 
+                ${isDragActive
+                  ? 'border-brand-500 bg-brand-50/20 dark:bg-brand-950/20'
                   : 'border-slate-200 dark:border-slate-800 hover:border-brand-400 dark:hover:border-brand-900'}
               `}
             >
@@ -265,10 +260,10 @@ export const AddExpense: React.FC = () => {
             <div className="border border-slate-100 dark:border-slate-800/80 rounded-2xl p-6 bg-slate-50/50 dark:bg-slate-900/40 space-y-6 max-w-xl mx-auto">
               <div className="flex gap-4 items-center">
                 {filePreview && (
-                  <img 
-                    src={filePreview} 
-                    alt="Receipt Thumbnail" 
-                    className="h-20 w-16 object-cover rounded-lg border border-slate-200 dark:border-slate-850 shrink-0" 
+                  <img
+                    src={filePreview}
+                    alt="Receipt Thumbnail"
+                    className="h-20 w-16 object-cover rounded-lg border border-slate-200 dark:border-slate-850 shrink-0"
                   />
                 )}
                 <div className="flex-1 min-w-0">
@@ -291,7 +286,7 @@ export const AddExpense: React.FC = () => {
                     <span>{currentScan.progress}%</span>
                   </div>
                   <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2">
-                    <div 
+                    <div
                       className="h-2 bg-brand-500 rounded-full transition-all duration-300"
                       style={{ width: `${currentScan.progress}%` }}
                     />
@@ -327,6 +322,25 @@ export const AddExpense: React.FC = () => {
                         Enter Manually
                       </button>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Successful Upload State */}
+              {currentScan.status === 'completed' && (
+                <div className="space-y-4 pt-2">
+                  <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-xl">
+                    <Check className="h-4.5 w-4.5 shrink-0 text-emerald-500" />
+                    <span>Receipt uploaded successfully!</span>
+                  </div>
+                  <div className="flex justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={cancelScanning}
+                      className="rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs px-5 py-2.5 shadow-md shadow-brand-500/10 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+                    >
+                      Upload Another
+                    </button>
                   </div>
                 </div>
               )}

@@ -88,3 +88,17 @@ export const getCategorywiseSpendings = async (req: Request, res: Response) => {
     }
 }
 
+export const uploadReceipt = async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    if (!userId) {
+        return res.status(401).json({ message: "unauthorized" })
+    }
+    try {
+        const receipt = await EXPENSE.uploadReceipt(userId, req.file?.path as string);
+        return res.status(200).json({ receipt })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "internal server error" })
+    }
+
+}

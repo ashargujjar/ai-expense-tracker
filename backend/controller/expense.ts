@@ -7,14 +7,19 @@ export const addExpenseThroughform = async (
   req: Request<{}, {}, ExpensesType>,
   res: Response,
 ) => {
-  const { items, totalAmount, totalItems } = req.body;
+  const { items, totalAmount, totalItems, receiptId } = req.body;
   const userId = req.user?.id;
   if (!userId) {
     return res.status(401).json({ message: "unauthorized" });
   }
 
   try {
-    const expense = new EXPENSE(items, totalAmount, userId, totalItems);
+    const expenseData: any = { items, totalAmount, userId, totalItems };
+    if (receiptId) {
+      expenseData.receiptId = receiptId;
+      console.log(expenseData);
+    }
+    const expense = new EXPENSE(expenseData);
     await expense.save();
     return res.status(200).json({ message: "expense added successfully" });
   } catch (error) {

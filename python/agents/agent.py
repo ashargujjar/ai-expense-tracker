@@ -7,9 +7,11 @@ from langchain.tools import tool
 from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
-from datetime import datetime
-
+from langchain_mcp_adapters.client import MultiServerMCPClient
 load_dotenv()
+
+
+
 model = ChatOpenAI(
     model="gpt-4o-mini",  # Replace if needed
     api_key=os.getenv("OPENAI_KEY"),
@@ -50,45 +52,61 @@ def image_ocr(image_path: str) -> dict:
         image_b64 = base64.b64encode(image.read()).decode("utf-8")
 
     message = HumanMessage(
-        content=[
-            {
-                "type": "text",
-                "text": """
-Extract the receipt.
-and return the structured output syntax provided to you
-If quantity is missing, assume it is 1.
+    content=[
+        {
+            "type": "text",
+            "text": """
+Extract the receipt and return the structured output as specified.
+
+Rules:
+- If quantity is missing, assume it is 1.
+- Every item MUST be assigned a category. Do not use "Unknown" unless the item name is completely illegible.
+- Choose the most specific matching category from this list:
+  Bakery, Dairy, Produce, Meat & Poultry, Grains & Rice, Spices & Condiments,
+  Beverages, Snacks, Household Cleaning, Personal Care, Kitchenware, Service Fee, Other
+- Use your general knowledge of common grocery/retail items to infer the category
+  even if the item name is abbreviated, misspelled, or in another language
+  (e.g. "Adrak" = ginger -> Produce, "Dalda Cooking Oil" -> Kitchen/Cooking, "Harpic" -> Household Cleaning).
+- "total" must equal price * quantity. If OCR-detected total conflicts with price*quantity,
+  trust the printed total on the receipt but flag it as-is (do not silently recompute).
 """
-            },
-            {
-                "type": "image_url",
-                "image_url": {
-                    "url": f"data:image/jpeg;base64,{image_b64}"
-                }
+        },
+        {
+            "type": "image_url",
+            "image_url": {
+                "url": f"data:image/jpeg;base64,{image_b64}"
             }
-        ]
-    )
+        }
+    ]
+)
 
     receipt = vision_model.invoke([message])
 
     return receipt.model_dump()
 
 
+async def get_agent():
 
-
-AI_expense_agent = create_agent(
-    model=model,
-    tools=[image_ocr],
-    system_prompt="""
-You are an AI Expense Tracker assistant.
-
-Rules:
-
-1. Help users understand and manage their expenses.
-2. If the user provides a receipt image path, ALWAYS use the image_ocr tool.
-3. Never guess receipt contents.
-4. Return the structured receipt extracted by the tool.
-5. Answer questions about budgeting, savings, spending habits, and expenses.
-6. If the question is unrelated to expenses, politely say you only assist with expense tracking.
-"""
+    client = MultiServerMCPClient(
+    {
+        "expense": {
+        "transport": "sse",
+        "url": "http://mcp:8001/sse"
+    }
+    }
 )
 
+    mcp_tools = await client.get_tools()
+
+    AI_expense_agent = create_agent(
+        model=model,
+        tools=[
+            image_ocr,
+            *mcp_tools
+        ],
+        system_prompt="""
+You are an AI Expense Tracker assistant.
+"""
+    )
+
+    return AI_expense_agent

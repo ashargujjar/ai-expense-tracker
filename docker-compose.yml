@@ -29,11 +29,16 @@ services:
       - CHOKIDAR_USEPOLLING=true
     depends_on:
       - mongodb
+      - redis
   redis:
     image: redis
     ports:
       - "6379:6379"
-
+  mcp:
+    build: ./mcp
+    container_name: mcp
+    ports:
+      - "8001:8001"
   python:
     build: ./python
     container_name: python
@@ -45,9 +50,9 @@ services:
       - ./.env
     depends_on:
       - backend
-      - frontend
       - redis
       - mongodb
+      - mcp
 
   mongodb:
     image: mongo:latest

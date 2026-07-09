@@ -1,17 +1,24 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from agents.agent import AI_expense_agent as agent
+from agents.agent import get_agent
 app=FastAPI()
 class OCRRequest(BaseModel):
     receiptId: str
     imagePath: str
     jwt:str
 
+agent = None
+
+@app.on_event("startup")
+async def startup():
+    global agent
+    agent = await get_agent()
+
 @app.post("/ocr")
-def generate_Reciept(request: OCRRequest):
+async def generate_Reciept(request: OCRRequest):
     print(request.receiptId)
     print(request.imagePath)
-    result = agent.invoke(
+    result =await agent.ainvoke(
       {
           "messages": [
               {

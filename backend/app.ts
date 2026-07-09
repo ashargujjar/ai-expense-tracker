@@ -5,6 +5,7 @@ import path from "path";
 import { connectDb } from "./db/db";
 import userRouter from "./routes/user"
 import expenseRouter from "./routes/expense"
+import "./utils/worker";
 const app = express();
 app.use(cors());
 app.use(express.json());

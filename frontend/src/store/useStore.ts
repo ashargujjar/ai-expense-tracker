@@ -72,8 +72,12 @@ interface AppState {
 
   // Budgets
   budget: Budget;
-  setMonthlyBudget: (limit: number) => void;
+  remainingBudget: number | null;
+  isLimitLoading: boolean;
+  setMonthlyBudget: (limit: number) => Promise<void>;
   setCategoryBudget: (category: string, limit: number) => void;
+  fetchMonthlyLimit: () => Promise<void>;
+  fetchRemainingBudget: () => Promise<void>;
 
   // Chats
   chats: Chat[];
@@ -138,6 +142,8 @@ export const useStore = create<AppState>((set, get) => ({
   monthlySpending: 0,
   highestSpending: 0,
   categorywiseSpending: [],
+  remainingBudget: null,
+  isLimitLoading: false,
 
   login: async (email, password) => {
     set({ isAuthLoading: true });
@@ -162,10 +168,15 @@ export const useStore = create<AppState>((set, get) => ({
       // Store token starting with Bearer in localStorage
       localStorage.setItem('token', `Bearer ${data.token}`);
 
+      // Clear any stale cached budget — real values will be fetched from the server below
+      localStorage.removeItem('budget');
+      set({ budget: { monthlyLimit: 0, categoryLimits: {} }, remainingBudget: null });
+
       set({ user, isAuthenticated: true, isAuthLoading: false });
       setLocal('user', user);
       setLocal('isAuthenticated', true);
       await get().fetchExpenses();
+      await get().fetchMonthlyLimit();
       return true;
     } catch (err: any) {
       set({ isAuthLoading: false });
@@ -347,6 +358,12 @@ export const useStore = create<AppState>((set, get) => ({
         const categorywiseData = await categorywiseRes.json();
         set({ categorywiseSpending: categorywiseData.averageSpendingByCategory || [] });
       }
+
+      // 6. Fetch remaining budget from backend
+      await get().fetchRemainingBudget();
+
+      // 7. Sync the monthly limit from backend into the budget state
+      await get().fetchMonthlyLimit();
     } catch (err) {
       console.error('Failed to fetch expenses from backend', err);
     }
@@ -597,11 +614,35 @@ export const useStore = create<AppState>((set, get) => ({
 
   // Budget State
   budget: getLocal<Budget>('budget', INITIAL_BUDGET),
-  setMonthlyBudget: (limit) => {
-    const updated = { ...get().budget, monthlyLimit: limit };
-    set({ budget: updated });
-    setLocal('budget', updated);
-    get().addNotification('Budget Configured', `Monthly spending limit updated to Rs. ${limit.toLocaleString()}`, 'info');
+  setMonthlyBudget: async (limit) => {
+    const token = localStorage.getItem('token');
+    set({ isLimitLoading: true });
+    try {
+      if (token) {
+        const response = await fetch(`${BACKEND_URL}/user/limit`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token
+          },
+          body: JSON.stringify({ limit })
+        });
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.message || 'Failed to update limit');
+        }
+      }
+      const updated = { ...get().budget, monthlyLimit: limit };
+      set({ budget: updated, isLimitLoading: false });
+      setLocal('budget', updated);
+      // Refresh remaining budget after updating the limit
+      await get().fetchRemainingBudget();
+      get().addNotification('Budget Configured', `Monthly spending limit updated to Rs. ${limit.toLocaleString()}`, 'info');
+    } catch (err: any) {
+      set({ isLimitLoading: false });
+      console.error('Failed to update monthly limit:', err);
+      get().addNotification('Update Failed', err.message || 'Could not update monthly limit.', 'warning');
+    }
   },
   setCategoryBudget: (category, limit) => {
     const updatedLimits = { ...get().budget.categoryLimits, [category]: limit };
@@ -609,6 +650,45 @@ export const useStore = create<AppState>((set, get) => ({
     set({ budget: updated });
     setLocal('budget', updated);
     get().addNotification('Category Budget Configured', `${category} category limit set to Rs. ${limit.toLocaleString()}`, 'info');
+  },
+
+  fetchMonthlyLimit: async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const response = await fetch(`${BACKEND_URL}/user/limit`, {
+        headers: { 'Authorization': token }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // Backend returns { limit: { monthlyLimit: number } } (Mongoose doc)
+        const serverLimit = data.limit?.monthlyLimit ?? data.limit ?? null;
+        if (serverLimit !== null && serverLimit !== undefined) {
+          const updated = { ...get().budget, monthlyLimit: Number(serverLimit) };
+          set({ budget: updated });
+          setLocal('budget', updated);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch monthly limit:', err);
+    }
+  },
+
+  fetchRemainingBudget: async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/remaining/budget`, {
+        headers: { 'Authorization': token }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // Backend returns { remainingBudget: number }
+        set({ remainingBudget: data.remainingBudget ?? null });
+      }
+    } catch (err) {
+      console.error('Failed to fetch remaining budget:', err);
+    }
   },
 
   // Chats State

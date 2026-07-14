@@ -38,11 +38,12 @@ async def list_tools():
                         },
                     },
                     "totalItems": {"type": "integer"},
+                    "shop_name": {"type": "string"},
                     "totalAmount": {"type": "number"},
                     "receiptId": {"type": "string"},
                     "jwt": {"type": "string"},
                 },
-                "required": ["items", "totalItems", "totalAmount", "receiptId", "jwt"],
+                "required": ["items", "totalItems", "totalAmount", "receiptId", "jwt","shop_name"],
             },
         )
     ]
@@ -59,6 +60,7 @@ async def call_tool(name: str, arguments: dict):
         total_amount = arguments["totalAmount"]
         receipt_id = arguments["receiptId"]
         jwt = arguments["jwt"]
+        shop_name = arguments["shop_name"]
         print(items,total_items,total_amount)
         logger.info("receiptId=%s totalAmount=%s totalItems=%s", receipt_id, total_amount, total_items)
 
@@ -70,6 +72,7 @@ async def call_tool(name: str, arguments: dict):
                     "totalItems": total_items,
                     "totalAmount": total_amount,
                     "receiptId": receipt_id,
+                    "shop_name": shop_name, 
                 },
                 headers={"Authorization": f"Bearer {jwt}"},
             )

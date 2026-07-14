@@ -5,6 +5,7 @@ type UserType = {
   name: string;
   email: string;
   password: string;
+  monthlyLimit: number
 };
 
 type ReceiptsType = {
@@ -27,6 +28,7 @@ type ChatType = {
 export type ExpensesType = {
   userId: mongoose.Types.ObjectId;
   receiptId?: mongoose.Types.ObjectId;
+  shop_name?: string;
   items: {
     name: string;
     category: string;
@@ -43,6 +45,7 @@ const userSchema = new mongoose.Schema<UserType>({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  monthlyLimit: { type: Number, required: false, default: 10000 }
 });
 
 const receiptSchema = new mongoose.Schema<ReceiptsType>({
@@ -70,6 +73,7 @@ const expensesSchema = new mongoose.Schema<ExpensesType>({
     required: false,
     default: undefined,
   },
+  shop_name: { type: String, required: false, default: undefined },
   items: [
     {
       name: { type: String, required: true },

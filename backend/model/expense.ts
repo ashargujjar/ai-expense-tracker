@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { Expenses, Receipt } from "../schema/schema";
+import USER from "./user";
 interface ExpenseItem {
   name: string;
   price: number;
@@ -12,6 +13,7 @@ interface ExpenseInput {
   userId: string;
   totalItems: number;
   receiptId?: string;
+  shop_name?: string;
 }
 class EXPENSE {
   items: ExpenseItem[];
@@ -19,13 +21,14 @@ class EXPENSE {
   userId: string;
   totalItems: number;
   receiptId?: string | undefined;
-
+  shop_name?: string | undefined;
   constructor(input: ExpenseInput) {
     this.items = input.items;
     this.totalAmount = input.totalAmount;
     this.userId = input.userId;
     this.totalItems = input.totalItems;
     this.receiptId = input.receiptId;
+    this.shop_name = input.shop_name;
   }
 
   async save() {
@@ -35,6 +38,7 @@ class EXPENSE {
       userId: this.userId,
       totalItems: this.totalItems,
       ...(this.receiptId && { receiptId: this.receiptId }),
+      ...(this.shop_name && { shop_name: this.shop_name }),
     });
     await expense.save();
   }
@@ -46,9 +50,11 @@ class EXPENSE {
     return expenses;
   }
   static async totalSpendings(userId: string) {
+    // aggregate() does NOT auto-cast strings to ObjectId — must convert explicitly
+    const userObjectId = new mongoose.Types.ObjectId(userId);
     const totalSpendings = await Expenses.aggregate([
       {
-        $match: { userId: userId },
+        $match: { userId: userObjectId },
       },
       {
         $group: { _id: null, totalAmount: { $sum: "$totalAmount" } },
@@ -57,10 +63,11 @@ class EXPENSE {
     return totalSpendings;
   }
   static async monthlySpendings(userId: string, year: number, month: number) {
+    const userObjectId = new mongoose.Types.ObjectId(userId);
     const monthlySpendings = await Expenses.aggregate([
       {
         $match: {
-          userId: userId,
+          userId: userObjectId,
           date: {
             $gte: new Date(year, month - 1, 1),
             $lt: new Date(year, month, 1),
@@ -74,10 +81,13 @@ class EXPENSE {
     return monthlySpendings;
   }
 
+
+
   static async getHighestSpendings(userId: string) {
+    const userObjectId = new mongoose.Types.ObjectId(userId);
     const highestSpendings = await Expenses.aggregate([
       {
-        $match: { userId: userId },
+        $match: { userId: userObjectId },
       },
       {
         $sort: { totalAmount: -1 },
@@ -90,9 +100,10 @@ class EXPENSE {
   }
 
   static async averageSpendingByCategory(userId: string) {
+    const userObjectId = new mongoose.Types.ObjectId(userId);
     const averageSpendingByCategory = await Expenses.aggregate([
       {
-        $match: { userId: userId },
+        $match: { userId: userObjectId },
       },
       {
         $unwind: "$items",
@@ -113,5 +124,16 @@ class EXPENSE {
     });
     return reciept;
   }
+  static async remainingBudget(userId: string) {
+    const userLimit = await USER.getMonthlylimit(userId);
+    // Return null when limit isn't configured so frontend can fallback gracefully
+    if (!userLimit || userLimit.monthlyLimit == null) return null;
+    const now = new Date();
+    const remaining = await this.monthlySpendings(userId, now.getFullYear(), now.getMonth() + 1);
+    const spent = Number(remaining[0]?.totalAmount) || 0;
+    const budgetLeft = Number(userLimit.monthlyLimit) - spent;
+    return budgetLeft >= 0 ? budgetLeft : 0;
+  }
+
 }
 export default EXPENSE;

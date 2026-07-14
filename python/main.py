@@ -16,8 +16,8 @@ async def startup():
 
 @app.post("/ocr")
 async def generate_Reciept(request: OCRRequest):
-    print(request.receiptId)
-    print(request.imagePath)
+    print("receiptId",request.receiptId)
+    print("imagePath",request.imagePath)
     result =await agent.ainvoke(
       {
           "messages": [

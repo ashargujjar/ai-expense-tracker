@@ -73,20 +73,10 @@ export const PAYMENT_METHODS = [
 
 
 
-// Initial Budgets
+// Initial Budgets — zeroed out; real values are loaded from backend on login
 export const INITIAL_BUDGET: Budget = {
-  monthlyLimit: 55000,
-  categoryLimits: {
-    'Grocery': 8000,
-    'Dairy': 3000,
-    'Food & Dining': 10000,
-    'Rent & Utilities': 28000,
-    'Travel & Transit': 6000,
-    'Entertainment': 5000,
-    'Shopping': 8000,
-    'Healthcare': 4000,
-    'Others': 3000
-  }
+  monthlyLimit: 0,
+  categoryLimits: {}
 };
 
 // Initial Notifications

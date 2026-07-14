@@ -1,7 +1,10 @@
 import express from "express";
-import { login, signUp } from "../controller/user";
+import { getMonthlylimit, login, setMonthlyLimit, signUp } from "../controller/user";
 import { validateLogin, validatesigup } from "../middleware/inputVerify";
+import { verifyUser } from "../middleware/authenticate";
 const router = express.Router();
 router.post("/login", validateLogin, login);
 router.post("/signup", validatesigup, signUp);
+router.put("/limit", verifyUser, setMonthlyLimit);
+router.get("/limit", verifyUser, getMonthlylimit);
 export default router;

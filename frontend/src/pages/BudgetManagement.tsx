@@ -10,7 +10,7 @@ import { useStore } from '../store/useStore';
 import { CATEGORIES } from '../utils/mockData';
 
 export const BudgetManagement: React.FC = () => {
-  const { budget, setMonthlyBudget, setCategoryBudget, expenses } = useStore();
+  const { budget, setMonthlyBudget, setCategoryBudget, expenses, isLimitLoading } = useStore();
 
   const [monthlyLimitInput, setMonthlyLimitInput] = useState(budget.monthlyLimit);
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
@@ -117,9 +117,10 @@ export const BudgetManagement: React.FC = () => {
                   />
                   <button
                     type="submit"
-                    className="rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs px-3.5 py-2"
+                    disabled={isLimitLoading}
+                    className="rounded-xl bg-brand-600 hover:bg-brand-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-xs px-3.5 py-2 transition-all duration-150"
                   >
-                    Save
+                    {isLimitLoading ? 'Saving...' : 'Save'}
                   </button>
                 </div>
               </div>

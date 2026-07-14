@@ -22,10 +22,9 @@ import {
   CartesianGrid
 } from 'recharts';
 import { useStore } from '../store/useStore';
-import { CATEGORIES } from '../utils/mockData';
 
 export const Dashboard: React.FC = () => {
-  const { expenses, budget, theme, totalSpending: storeTotalSpending, monthlySpending: storeMonthlySpending, highestSpending, categorywiseSpending } = useStore();
+  const { expenses, budget, theme, totalSpending: storeTotalSpending, monthlySpending: storeMonthlySpending, highestSpending, categorywiseSpending, remainingBudget: storeRemainingBudget } = useStore();
   const navigate = useNavigate();
 
   const isDark = theme === 'dark';
@@ -39,14 +38,23 @@ export const Dashboard: React.FC = () => {
   const monthlyExpenses = expenses.filter(e => e.date.startsWith(currentMonthStr));
   const monthlySpending = storeMonthlySpending || monthlyExpenses.reduce((sum, e) => sum + e.amount, 0);
   
-  // Budget left
-  const budgetRemaining = budget.monthlyLimit - monthlySpending;
-  const budgetProgress = (monthlySpending / budget.monthlyLimit) * 100;
+  // Budget left — prefer server-computed remaining budget; null means backend has no limit set yet
+  const budgetRemainingLocal = budget.monthlyLimit - monthlySpending;
+  const budgetRemaining = storeRemainingBudget !== null ? storeRemainingBudget : budgetRemainingLocal;
+  const budgetProgress = budget.monthlyLimit > 0
+    ? (monthlySpending / budget.monthlyLimit) * 100
+    : 0;
 
-  // Highest spending category
+  // All-time category totals (used by Pie chart)
   const categoryTotals: Record<string, number> = {};
   expenses.forEach(e => {
     categoryTotals[e.category] = (categoryTotals[e.category] || 0) + e.amount;
+  });
+
+  // Current-month category totals (used by "Category Spending & Item Averages" section)
+  const categoryMonthlyTotals: Record<string, number> = {};
+  monthlyExpenses.forEach(e => {
+    categoryMonthlyTotals[e.category] = (categoryMonthlyTotals[e.category] || 0) + e.amount;
   });
 
   let highestCategory = 'None';
@@ -102,57 +110,80 @@ export const Dashboard: React.FC = () => {
     return data;
   }, [expenses, storeMonthlySpending, budget.monthlyLimit]);
 
+  // Build a dynamic category list from real backend data only
+  // Union of: categories in this month's expenses + categories with historical averages
+  const backendCategories = Array.from(new Set([
+    ...Object.keys(categoryMonthlyTotals).filter(c => categoryMonthlyTotals[c] > 0),
+    ...(categorywiseSpending || []).map((c: any) => c._id as string)
+  ])).sort();
 
-
-
-  // AI Insights Engine
+  // AI Insights — driven by real data only
   const getAIInsights = () => {
     const insights = [];
-    
-    // Food spend alert
-    const foodSpend = categoryTotals['Food & Dining'] || 0;
-    if (foodSpend > budget.categoryLimits['Food & Dining'] * 0.8) {
+
+    // Insight 1: top spending category this month
+    const topMonthCat = Object.entries(categoryMonthlyTotals).sort((a, b) => b[1] - a[1])[0];
+    if (topMonthCat && topMonthCat[1] > 0) {
       insights.push({
         id: 'ins-1',
-        text: `You spent Rs. ${foodSpend.toLocaleString()} on dining out. This is nearing 90% of your Food & Dining cap. Consider preparing meals at home.`,
-        type: 'warning'
+        text: `Your biggest spend this month is on **${topMonthCat[0]}** at Rs. ${topMonthCat[1].toLocaleString()}. Consider reviewing items in this category.`,
+        type: 'info'
       });
     } else {
       insights.push({
         id: 'ins-1',
-        text: 'Food & Dining spending is currently stable and within your optimal safety range.',
-        type: 'success'
-      });
-    }
-
-    // Grocery alert
-    const grocerySpend = categoryTotals['Grocery'] || 0;
-    if (grocerySpend > 5000) {
-      insights.push({
-        id: 'ins-2',
-        text: `Your grocery bills rose by Rs. ${grocerySpend - 4000 > 0 ? (grocerySpend - 4000).toLocaleString() : '1,200'} this week. We noticed elevated prices on fresh produce.`,
+        text: 'No expenses recorded this month yet. Start adding transactions to get personalized insights.',
         type: 'info'
       });
     }
 
-    // General limit alarm
-    if (budgetProgress > 90) {
-      insights.push({
-        id: 'ins-3',
-        text: 'Danger: You are on track to breach your overall monthly budget. Hold off non-essential shopping.',
-        type: 'danger'
-      });
-    } else if (budgetProgress > 75) {
-      insights.push({
-        id: 'ins-3',
-        text: 'Caution: You have consumed over 75% of your total allowance with several days remaining.',
-        type: 'warning'
-      });
+    // Insight 2: monthly budget status
+    if (budget.monthlyLimit > 0) {
+      if (budgetProgress > 90) {
+        insights.push({
+          id: 'ins-2',
+          text: `Danger: You have used ${budgetProgress.toFixed(0)}% of your monthly budget. Hold off non-essential spending.`,
+          type: 'danger'
+        });
+      } else if (budgetProgress > 75) {
+        insights.push({
+          id: 'ins-2',
+          text: `Caution: You have used ${budgetProgress.toFixed(0)}% of your monthly budget with days remaining.`,
+          type: 'warning'
+        });
+      } else if (budgetProgress > 0) {
+        insights.push({
+          id: 'ins-2',
+          text: `On track: You have Rs. ${Math.max(0, budgetRemaining).toLocaleString()} remaining this month (${(100 - budgetProgress).toFixed(0)}% of your limit).`,
+          type: 'success'
+        });
+      }
     } else {
       insights.push({
+        id: 'ins-2',
+        text: 'No monthly budget limit set. Go to Budget Control Center to set a limit and track your spending.',
+        type: 'warning'
+      });
+    }
+
+    // Insight 3: compare this month vs previous month
+    const prevMonthStr = (() => {
+      const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    })();
+    const prevMonthSpend = expenses
+      .filter(e => e.date.startsWith(prevMonthStr))
+      .reduce((sum, e) => sum + e.amount, 0);
+
+    if (prevMonthSpend > 0 && monthlySpending > 0) {
+      const diff = monthlySpending - prevMonthSpend;
+      const pct = Math.abs((diff / prevMonthSpend) * 100).toFixed(0);
+      insights.push({
         id: 'ins-3',
-        text: `Savings projection: If spending continues at this pace, you will save Rs. ${Math.max(0, budgetRemaining).toLocaleString()} this month.`,
-        type: 'success'
+        text: diff > 0
+          ? `Spending is up ${pct}% vs last month (Rs. ${prevMonthSpend.toLocaleString()} → Rs. ${monthlySpending.toLocaleString()}). Try to reduce discretionary spend.`
+          : `Great job! Spending is down ${pct}% vs last month (Rs. ${prevMonthSpend.toLocaleString()} → Rs. ${monthlySpending.toLocaleString()}).`,
+        type: diff > 0 ? 'warning' : 'success'
       });
     }
 
@@ -212,9 +243,9 @@ export const Dashboard: React.FC = () => {
           <h3 className="font-outfit text-2xl font-extrabold text-slate-800 dark:text-slate-100 mt-2">
             Rs. {monthlySpending.toLocaleString()}
           </h3>
-          <div className="flex items-center gap-1 text-[11px] text-emerald-500 font-semibold mt-2">
+          <div className="flex items-center gap-1 text-[11px] text-slate-400 mt-2">
             <TrendingDown className="h-3.5 w-3.5" />
-            <span>4.2% less than last month</span>
+            <span>{new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
           </div>
         </div>
 
@@ -379,43 +410,64 @@ export const Dashboard: React.FC = () => {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 max-h-[300px] overflow-y-auto pr-1">
-            {CATEGORIES.map((cat) => {
-              const currentSpend = categoryTotals[cat] || 0;
-              
-              // Find average from categorywiseSpending
-              const avgItemObj = categorywiseSpending?.find((c: any) => c._id === cat);
-              const avgItemPrice = avgItemObj ? Math.round(avgItemObj.averageAmount) : 0;
+            {backendCategories.length === 0 ? (
+              <div className="col-span-2 flex flex-col items-center justify-center py-10 text-center gap-2">
+                <Sparkles className="h-6 w-6 text-slate-300 dark:text-slate-700" />
+                <p className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                  No expense data yet
+                </p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-600">
+                  Add your first transaction to see category breakdowns here.
+                </p>
+              </div>
+            ) : (
+              backendCategories.map((cat) => {
+                // This month's spend for this category (from backend expenses)
+                const currentSpend = categoryMonthlyTotals[cat] || 0;
 
-              return (
-                <div 
-                  key={cat}
-                  className="rounded-xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 p-3 flex flex-col justify-between hover:scale-[1.01] transition-all duration-200"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{cat}</span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      This Month: Rs. {currentSpend.toLocaleString()}
-                    </span>
-                  </div>
+                // Historical average item price from GET /api/categorywise
+                const avgItemObj = categorywiseSpending?.find((c: any) => c._id === cat);
+                const avgItemPrice = avgItemObj ? Math.round(avgItemObj.averageAmount) : 0;
 
-                  <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                    <span>Average Item Cost:</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">
-                      {avgItemPrice > 0 ? `Rs. ${avgItemPrice}` : 'N/A'}
-                    </span>
-                  </div>
+                // Progress bar: current month spend vs historical average scale
+                const spendVsAvgPct = avgItemPrice > 0
+                  ? Math.min(100, (currentSpend / (avgItemPrice * 10)) * 100)
+                  : 0;
 
-                  {avgItemPrice > 0 && (
-                    <div className="mt-2.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1">
-                      <div 
-                        className="h-1 bg-violet-500 rounded-full" 
-                        style={{ width: `${Math.min(100, (avgItemPrice / 500) * 100)}%` }}
+                return (
+                  <div
+                    key={cat}
+                    className="rounded-xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 p-3 flex flex-col justify-between hover:scale-[1.01] transition-all duration-200"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{cat}</span>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                        currentSpend > 0 ? 'text-violet-500' : 'text-slate-400'
+                      }`}>
+                        This Month: Rs. {currentSpend.toLocaleString()}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                      <span>Avg Item Cost:</span>
+                      <span className="font-bold text-slate-800 dark:text-slate-100">
+                        {avgItemPrice > 0 ? `Rs. ${avgItemPrice.toLocaleString()}` : 'N/A'}
+                      </span>
+                    </div>
+
+                    <div className="mt-2.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1 overflow-hidden">
+                      <div
+                        className={`h-1 rounded-full transition-all duration-500 ${
+                          spendVsAvgPct > 80 ? 'bg-rose-500' :
+                          spendVsAvgPct > 50 ? 'bg-amber-500' : 'bg-violet-500'
+                        }`}
+                        style={{ width: `${currentSpend > 0 ? Math.max(spendVsAvgPct, 4) : 0}%` }}
                       />
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>

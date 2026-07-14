@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { ExpensesType } from "../schema/schema";
+import { Expenses, ExpensesType } from "../schema/schema";
 import EXPENSE from "../model/expense";
 import { recieptQue } from "../utils/que";
 import path from "path";
@@ -7,7 +7,7 @@ export const addExpenseThroughform = async (
   req: Request<{}, {}, ExpensesType>,
   res: Response,
 ) => {
-  const { items, totalAmount, totalItems, receiptId } = req.body;
+  const { items, totalAmount, totalItems, receiptId, shop_name } = req.body;
   const userId = req.user?.id;
   if (!userId) {
     return res.status(401).json({ message: "unauthorized" });
@@ -17,7 +17,9 @@ export const addExpenseThroughform = async (
     const expenseData: any = { items, totalAmount, userId, totalItems };
     if (receiptId) {
       expenseData.receiptId = receiptId;
-      console.log(expenseData);
+    }
+    if (shop_name) {
+      expenseData.shop_name = shop_name;
     }
     const expense = new EXPENSE(expenseData);
     await expense.save();
@@ -138,3 +140,20 @@ export const uploadReceipt = async (req: Request, res: Response) => {
     res.status(500).json({ message: "internal server error" });
   }
 };
+
+export const getRemainingBudget = async (req: Request, res: Response) => {
+
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: "unauthorized" });
+  }
+  try {
+    const budgetLeft = await EXPENSE.remainingBudget(userId)
+    // budgetLeft is null when the user has no monthly limit configured
+    return res.status(200).json({ remainingBudget: budgetLeft });
+  }
+  catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "internal server error" });
+  }
+}

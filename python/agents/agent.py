@@ -25,6 +25,7 @@ class ExpenseItem(BaseModel):
     total: float = Field(description="price * quantity")
 
 class ExpenseReceipt(BaseModel):
+    shop_name: str = Field(description="Name of the shop")
     items: List[ExpenseItem]
     totalItems: int
     totalAmount: float

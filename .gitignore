@@ -9,11 +9,11 @@
 **/.yarn/
 **/uploads
 # Frontend build outputs and compilation artifacts
-**/dist/
-**/build/
-**/.next/
-**/out/
-**/.nuxt/
+**/frontend/dist/
+**/frontend/build/
+**/frontend/.next/
+**/frontend/out/
+**/frontend/.nuxt/
 
 # Debug and execution logs
 **/*.log

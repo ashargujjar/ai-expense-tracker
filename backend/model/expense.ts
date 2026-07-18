@@ -135,5 +135,22 @@ class EXPENSE {
     return budgetLeft >= 0 ? budgetLeft : 0;
   }
 
+  static async getBudget(userId: string) {
+    const userLimit = await USER.getMonthlylimit(userId);
+    return userLimit?.monthlyLimit;
+  }
+
+  static async deleteExpense(userId: string, expenseId: string) {
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+    const expenseObjectId = new mongoose.Types.ObjectId(expenseId);
+    const expense = await Expenses.findOneAndDelete({
+      _id: expenseObjectId,
+      userId: userObjectId,
+    });
+    if (!expense) {
+      throw new Error("Expense not found");
+    }
+    return expense;
+  }
 }
 export default EXPENSE;

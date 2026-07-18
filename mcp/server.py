@@ -13,7 +13,13 @@ logger = logging.getLogger("my-simple-server")
 
 server = Server("my-simple-server")
 
-
+jwtSchema={
+                "type": "object",
+                "properties":{
+                   "jwt":{"type":"string", "description": "JWT token for user authentication"} 
+                },
+                "required":["jwt"]
+            }
 @server.list_tools()
 async def list_tools():
     return [
@@ -45,40 +51,140 @@ async def list_tools():
                 },
                 "required": ["items", "totalItems", "totalAmount", "receiptId", "jwt","shop_name"],
             },
+        ),
+        types.Tool(
+            name="get_total_spendings",
+            description="get the total all spendings",
+            inputSchema=jwtSchema
+        ),
+        types.Tool(
+          name="get_budget_limit",
+          description="get the total monthly limit of user",
+          inputSchema=jwtSchema
+        ),
+        types.Tool(
+        name="set_budget_limit",
+        description="set the total monthly limit of user",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "limit": {"type": "number"},
+                "jwt": {"type": "string"},
+            },
+            "required": ["limit", "jwt"],
+            }    
+        ),
+        types.Tool(
+           name="get_monthly_spendings",
+           description="get the total monthly spendings of user",
+           inputSchema=jwtSchema
+        ),
+        types.Tool(
+            name="get_highest_spendings",
+            description="get the highest spendings of user",
+            inputSchema=jwtSchema
+        ),
+        types.Tool(
+            name="get_categorywise_spendings",
+            description="get the average spending by category of user",
+            inputSchema=jwtSchema
+        ),
+        types.Tool(
+            name="get_remaining_budget",
+            description="get the remaining budget of user",
+            inputSchema=jwtSchema
         )
     ]
 
 
 @server.call_tool()
-async def call_tool(name: str, arguments: dict):
-    if name != "save_expense":
-        raise ValueError(f"Unknown tool: {name}")
-
+async def call_tool(name: str, arguments: dict):    
     try:
-        items = arguments["items"]
-        total_items = arguments["totalItems"]
-        total_amount = arguments["totalAmount"]
-        receipt_id = arguments["receiptId"]
-        jwt = arguments["jwt"]
-        shop_name = arguments["shop_name"]
-        print(items,total_items,total_amount)
-        logger.info("receiptId=%s totalAmount=%s totalItems=%s", receipt_id, total_amount, total_items)
+        if name=="save_expense":
+            items = arguments["items"]
+            total_items = arguments["totalItems"]
+            total_amount = arguments["totalAmount"]
+            receipt_id = arguments["receiptId"]
+            jwt = arguments["jwt"]
+            shop_name = arguments["shop_name"]
+            print(items,total_items,total_amount)
+            logger.info("receiptId=%s totalAmount=%s totalItems=%s", receipt_id, total_amount, total_items)
 
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                "http://backend:5000/api/expense",
-                json={
-                    "items": items,
-                    "totalItems": total_items,
-                    "totalAmount": total_amount,
-                    "receiptId": receipt_id,
-                    "shop_name": shop_name, 
-                },
-                headers={"Authorization": f"Bearer {jwt}"},
-            )
-            resp.raise_for_status()
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    "http://backend:5000/api/expense",
+                    json={
+                        "items": items,
+                        "totalItems": total_items,
+                        "totalAmount": total_amount,
+                        "receiptId": receipt_id,
+                        "shop_name": shop_name, 
+                    },
+                    headers={"Authorization": f"Bearer {jwt}"},
+                )
 
-        return [types.TextContent(type="text", text="Expense saved")]
+                resp.raise_for_status()
+
+            return [types.TextContent(type="text", text="Expense saved")]
+        elif name == "get_total_spendings":
+            jwt=arguments["jwt"]
+            async with httpx.AsyncClient() as client:
+                resp=await client.get("http://backend:5000/api/total",
+                                      headers={"Authorization":f"Bearer {jwt}"})
+                resp.raise_for_status()
+                data=resp.json()
+                return [types.TextContent(type="text",text=f"total expense fetched {data}")]
+        elif name == "get_budget_limit":
+            jwt=arguments["jwt"]
+            async with httpx.AsyncClient() as client:
+                resp=await client.get("http://backend:5000/api/budget/limit",
+                                      headers={"Authorization":f"Bearer {jwt}"})
+                resp.raise_for_status()
+                data=resp.json()
+                return [types.TextContent(type="text",text=f"budget limit fetched {data}")]
+        elif name == "set_budget_limit":
+            jwt=arguments["jwt"]
+            limit=arguments["limit"]
+            async with httpx.AsyncClient() as client:
+                resp=await client.post("http://backend:5000/api/budget",
+                                      json={"limit":limit},
+                                      headers={"Authorization":f"Bearer {jwt}"})
+                resp.raise_for_status()
+                data=resp.json()
+                return [types.TextContent(type="text",text=f"budget limit set {data}")]
+        elif name == "get_monthly_spendings":
+            jwt=arguments["jwt"]
+            async with httpx.AsyncClient() as client:
+                resp=await client.get("http://backend:5000/api/monthly",
+                                      headers={"Authorization":f"Bearer {jwt}"})
+                resp.raise_for_status()
+                data=resp.json()
+                return [types.TextContent(type="text",text=f"monthly spendings fetched {data}")]
+        elif name == "get_highest_spendings":
+            jwt=arguments["jwt"]
+            async with httpx.AsyncClient() as client:
+                resp=await client.get("http://backend:5000/api/highest",
+                                      headers={"Authorization":f"Bearer {jwt}"})
+                resp.raise_for_status()
+                data=resp.json()
+                return [types.TextContent(type="text",text=f"highest spendings fetched {data}")]
+        elif name == "get_categorywise_spendings":
+            jwt=arguments["jwt"]
+            async with httpx.AsyncClient() as client:
+                resp=await client.get("http://backend:5000/api/categorywise",
+                                      headers={"Authorization":f"Bearer {jwt}"})
+                resp.raise_for_status()
+                data=resp.json()
+                return [types.TextContent(type="text",text=f"categorywise spendings fetched {data}")]
+        elif name == "get_remaining_budget":
+            jwt=arguments["jwt"]
+            async with httpx.AsyncClient() as client:
+                resp=await client.get("http://backend:5000/api/remaining/budget",
+                                      headers={"Authorization":f"Bearer {jwt}"})
+                resp.raise_for_status()
+                data=resp.json()
+                return [types.TextContent(type="text",text=f"remaining budget fetched {data}")] 
+
 
     except KeyError as e:
         return [types.TextContent(type="text", text=f"Missing argument: {e}")]

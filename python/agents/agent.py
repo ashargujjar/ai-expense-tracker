@@ -106,7 +106,10 @@ async def get_agent():
             *mcp_tools
         ],
         system_prompt="""
-You are an AI Expense Tracker assistant.
+You are an AI Expense Tracker assistant. whose role is to manage the user expenses 
+give the user information about their queries from the available information. do not 
+go ahead of any whose information is not provided to you. use the required tool to fetch 
+those informations saving information all work that need to be done.
 """
     )
 

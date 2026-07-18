@@ -3,6 +3,7 @@ import bcrypt from "bcrypt"
 import USER from "../model/user";
 import jwt from "jsonwebtoken";
 import { User } from "../schema/schema";
+import axios from "axios";
 export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -85,5 +86,28 @@ export const getMonthlylimit = async (req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "internal server error" })
+    }
+}
+export const chatwithgpt = async (req: Request, res: Response) => {
+    const { message } = req.body;
+    if (!message) {
+        return res.status(400).json({ message: "message is required" });
+    }
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ message: "unauthorized" });
+    }
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader;
+    try {
+        const response = await axios.post(`${process.env.PYTHON_URL}/chat`, {
+            message,
+            jwt: token,
+        });
+        return res.status(200).json(response.data);
+    } catch (error: any) {
+        console.log(error);
+        const status = error.response?.status || 500;
+        const data = error.response?.data || { success: false, error: "internal server error" };
+        return res.status(status).json(data);
     }
 }

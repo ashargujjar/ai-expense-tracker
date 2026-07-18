@@ -10,7 +10,6 @@ import {
   INITIAL_BUDGET,
   INITIAL_NOTIFICATIONS,
   INITIAL_CHATS,
-  queryAIInsights
 } from '../utils/mockData';
 
 const BACKEND_URL = import.meta.env.BACKEND_URL || 'http://localhost:5000';
@@ -764,67 +763,48 @@ export const useStore = create<AppState>((set, get) => ({
     set({ chats: updatedChats });
     setLocal('chats', updatedChats);
 
-    // Simulate Assistant typing latency
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    // Call real backend
+    const token = localStorage.getItem('token');
+    let assistantContent = 'Sorry, I could not reach the AI assistant. Please try again.';
 
-    // Simulated streaming response setup
+    try {
+      const response = await fetch(`${BACKEND_URL}/user/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token || ''
+        },
+        body: JSON.stringify({ message: content })
+      });
+
+      const data = await response.json();
+      if (data.success && data.response) {
+        assistantContent = data.response;
+      } else if (data.error) {
+        assistantContent = `Error: ${data.error}`;
+      }
+    } catch (err) {
+      console.error('Chat API error:', err);
+    }
+
+    // Append assistant reply
     const assistantMsgId = `msg-${Date.now()}-assistant`;
-    const finalAnswer = queryAIInsights(content, get().expenses, get().budget);
-
-    const initialAssistantMsg: Message = {
+    const assistantMsg: Message = {
       id: assistantMsgId,
       role: 'assistant',
-      content: '', // Start empty for typing streaming effect
-      timestamp: new Date().toISOString(),
-      chartData: finalAnswer.chartData,
-      chartType: finalAnswer.chartType
+      content: assistantContent,
+      timestamp: new Date().toISOString()
     };
 
-    // Append empty assistant message
-    set({
-      chats: get().chats.map(c =>
-        c.id === activeChatId
-          ? { ...c, messages: [...updatedMessages, initialAssistantMsg] }
-          : c
-      )
-    });
-
-    // Stream text character by character / chunk by chunk
-    const textToStream = finalAnswer.content;
-    let currentIdx = 0;
-    const chunkSize = Math.max(1, Math.floor(textToStream.length / 15)); // Stream in 15 chunks
-
-    return new Promise<void>((resolve) => {
-      const interval = setInterval(() => {
-        if (currentIdx >= textToStream.length) {
-          clearInterval(interval);
-          resolve();
-          return;
-        }
-
-        currentIdx += chunkSize;
-        const slicedText = textToStream.slice(0, currentIdx);
-
-        set({
-          chats: get().chats.map(c =>
-            c.id === activeChatId
-              ? {
-                ...c,
-                messages: c.messages.map(m =>
-                  m.id === assistantMsgId ? { ...m, content: slicedText } : m
-                )
-              }
-              : c
-          )
-        });
-
-        // Save at the end of streaming
-        if (currentIdx >= textToStream.length) {
-          setLocal('chats', get().chats);
-        }
-      }, 70);
-    });
+    const finalChats = get().chats.map(c =>
+      c.id === activeChatId
+        ? { ...c, messages: [...c.messages, assistantMsg] }
+        : c
+    );
+    set({ chats: finalChats });
+    setLocal('chats', finalChats);
   },
+
 
   clearChats: () => {
     localStorage.removeItem('chats');

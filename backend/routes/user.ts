@@ -1,5 +1,5 @@
 import express from "express";
-import { getMonthlylimit, login, setMonthlyLimit, signUp } from "../controller/user";
+import { chatwithgpt, getMonthlylimit, login, setMonthlyLimit, signUp } from "../controller/user";
 import { validateLogin, validatesigup } from "../middleware/inputVerify";
 import { verifyUser } from "../middleware/authenticate";
 const router = express.Router();
@@ -7,4 +7,5 @@ router.post("/login", validateLogin, login);
 router.post("/signup", validatesigup, signUp);
 router.put("/limit", verifyUser, setMonthlyLimit);
 router.get("/limit", verifyUser, getMonthlylimit);
+router.post("/chat", verifyUser, chatwithgpt);
 export default router;

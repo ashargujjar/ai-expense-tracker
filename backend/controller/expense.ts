@@ -157,3 +157,41 @@ export const getRemainingBudget = async (req: Request, res: Response) => {
     res.status(500).json({ message: "internal server error" });
   }
 }
+
+export const getBudget = async (req: Request, res: Response) => {
+
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: "unauthorized" });
+  }
+  try {
+    const budget = await EXPENSE.getBudget(userId)
+    return res.status(200).json({ budget });
+  }
+  catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "internal server error" });
+  }
+}
+
+export const deleteExpense = async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const { id } = req.params;
+  if (!userId) {
+    return res.status(401).json({ message: "unauthorized" });
+  }
+  try {
+    const expense = await EXPENSE.deleteExpense(userId, id as string);
+    if (!expense) {
+      return res.status(404).json({ message: "expense not found" });
+    }
+    return res.status(200).json({ message: "expense deleted successfully" });
+  }
+  catch (error) {
+    if (error instanceof Error) {
+      return res.status(500).json({ message: error.message });
+    }
+    console.log(error);
+    res.status(500).json({ message: "internal server error" });
+  }
+}
